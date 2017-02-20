@@ -1,13 +1,24 @@
-
+/*
+ *
+ * Classe que emula un Lamport Clock
+ *
+ */
 public class LamportClock {
 	public int ticks;
 	
+	/*
+	 *
+	 * Constructor
+	 *
+	 */
 	public LamportClock(){
 		ticks = 0; 
 	}
+
 	public void sendAction(){
 		ticks++;
 	} 
+
 	public void tick(){
 		ticks++;
 	}

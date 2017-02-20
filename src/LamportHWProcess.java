@@ -7,6 +7,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 
+/*
+ *
+ * Classe que realitza les tasques de procès HeavyWeight per l'algoritme Lamport Clock
+ *
+ */
 public class LamportHWProcess extends Thread{
 	
 	boolean debug;
@@ -25,12 +30,17 @@ public class LamportHWProcess extends Thread{
 		this.debug = debug;
 	}
 	
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		
 		initConfig();
 		
 		LamportNode [] lamportList = new LamportNode[3];
-		//System.out.println("Hello World");
+
 		
 		for (int i=1 ; i<=3 ; i++){
 			lamportList[i-1] = new LamportNode(i, new LamportClock());
@@ -41,7 +51,6 @@ public class LamportHWProcess extends Thread{
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			lamportList[i].start();
@@ -54,6 +63,11 @@ public class LamportHWProcess extends Thread{
 		
 	}
 	
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	private void initConfig(){
 		try {
 			ServerSocket serverSock = new ServerSocket(5900);
@@ -67,16 +81,17 @@ public class LamportHWProcess extends Thread{
 			serverSock.close();
 					
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}	
-		
-		
+		}		
 	}
 	
+	/*
+	 *
+	 * Inicializa els sockets amb el procès 1
+	 *
+	 */
 	private void initSockP1(){
 		try {
 			ServerSocket serverSock = new ServerSocket(5901);
@@ -89,14 +104,17 @@ public class LamportHWProcess extends Thread{
 			serverSock.close();
 					
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}
 	
+	/*
+	 *
+	 * Inicializa els sockets amb el procès 3
+	 *
+	 */
 	private void initSockP3(){
 		try {
 			ServerSocket serverSock = new ServerSocket(5902);
@@ -109,15 +127,18 @@ public class LamportHWProcess extends Thread{
 			serverSock.close();
 					
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 		
 	}
-	
+
+	/*
+	 *
+	 * Bucle infinit per a passar el token
+	 *
+	 */	
 	private void doIterations(){
 		while (true){
 			
@@ -125,7 +146,6 @@ public class LamportHWProcess extends Thread{
 			try {
 				stdInP3.readLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			stdOut.println("TOKEN");
@@ -133,7 +153,6 @@ public class LamportHWProcess extends Thread{
 			try {
 				stdIn.readLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

@@ -7,7 +7,11 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 
 
-
+/*
+ *
+ * Classe que realitza les tasques de procès HeavyWeight per l'algoritme Ricart&Agrawala
+ *
+ */
 public class RAHWProcess extends Thread{
 	boolean debug;
 	
@@ -26,13 +30,17 @@ public class RAHWProcess extends Thread{
 	public RAHWProcess(boolean debug){
 		this.debug = debug;
 	}
-	
+
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		
 		initConfig();
 		
 		RANode [] RAList = new RANode[2];
-		//System.out.println("Hello World");
 		
 		for (int i=1 ; i<=2 ; i++){
 			RAList[i-1] = new RANode(i, new LamportClock());
@@ -43,7 +51,6 @@ public class RAHWProcess extends Thread{
 			try {
 				Thread.sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			RAList[i].start();
@@ -54,12 +61,16 @@ public class RAHWProcess extends Thread{
 		
 		doIterations();
 	}
-	
+
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	private void initConfig(){
 		try {
 			sleep(250);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		try {
@@ -69,14 +80,17 @@ public class RAHWProcess extends Thread{
 			stdOut = new PrintWriter(sock.getOutputStream(), true);
 			stdIn = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}
 	
+	/*
+	 *
+	 * Inicializa els sockets amb el procès 1
+	 *
+	 */
 	private void initSockP1(){
 		try {
 			ServerSocket serverSock = new ServerSocket(5903);
@@ -89,14 +103,18 @@ public class RAHWProcess extends Thread{
 			serverSock.close();
 					
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}
-	
+
+
+	/*
+	 *
+	 * Inicializa els sockets amb el procès 2
+	 *
+	 */
 	private void initSockP2(){
 		try {
 			ServerSocket serverSock = new ServerSocket(5904);
@@ -109,28 +127,30 @@ public class RAHWProcess extends Thread{
 			serverSock.close();
 					
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 		
 	}
 	
+
+	/*
+	 *
+	 * Bucle infinit per a passar el token 
+	 *
+	 */
 	private void doIterations(){
 		while (true){
 			try {
 				stdIn.readLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			stdOutP1.println("FREE");
 			try {
 				stdInP2.readLine();
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			stdOut.println("TOKEN");

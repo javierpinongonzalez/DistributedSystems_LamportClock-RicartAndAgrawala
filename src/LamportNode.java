@@ -11,7 +11,11 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Semaphore;
 
-
+/*
+ *
+ * Classe que realitza emula l'algoritme del Lamport Clock
+ *
+ */
 public class LamportNode extends Thread{
 	public int id;
 	public LamportClock ts;
@@ -21,8 +25,8 @@ public class LamportNode extends Thread{
 	public Queue shared = new LinkedList<>();
 	Semaphore getMessageSemaphore = new Semaphore(0);
 	
-	public Socket sock1; //forward/listen socket
-	public Socket sock2; //backward/talk socket
+	public Socket sock1; 
+	public Socket sock2; 
 	public PrintWriter stdOut1;
 	public PrintWriter stdOut2;
 	public BufferedReader stdIn1;
@@ -42,25 +46,33 @@ public class LamportNode extends Thread{
 		this.ts = ts;
 		this.q = new ArrayList<LamportQueueNode>();
 	}
-	
+
+
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		initConfig();
 		
 		initStdInListeners();
 		
 		doIterations();
-		
-		//closeConfig();
-		//System.out.println("Bye from thread num: "+id);
 	}
 	
+
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	private void initConfig(){
 		if (debug) System.out.println("[DEBUG] Process " + id + " starting initConfig()");
 		
 		try {
 			sleep(1000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -70,7 +82,6 @@ public class LamportNode extends Thread{
 			try {
 				sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			configSock2();
@@ -96,11 +107,15 @@ public class LamportNode extends Thread{
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process HeavyWeight 1
+	 *
+	 */
 	private void configSockHWP1(){
 		try {
 			sleep(100);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		try {
@@ -110,14 +125,17 @@ public class LamportNode extends Thread{
 			
 			stdInHWP1 = new BufferedReader(new InputStreamReader(sockHWP1.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process HeavyWeight 3
+	 *
+	 */
 	private void configSockHWP3(){
 		try {
 			if (debug) System.out.println("[DEBUG] Process " + id + " connecting to HWP3...");
@@ -126,17 +144,19 @@ public class LamportNode extends Thread{
 			
 			stdOutHWP3 = new PrintWriter(sockHWP3.getOutputStream(), true);
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process LightWeight 1
+	 *
+	 */
 	private void configSock1(){
-		//Listen
-		
+
 		try{
 			ServerSocket serverSock = new ServerSocket(6900+id);
 			if (debug) System.out.println("[DEBUG] Process " + id + " listening...");
@@ -146,16 +166,20 @@ public class LamportNode extends Thread{
 			stdOut1 = new PrintWriter(sock1.getOutputStream(), true);
 			stdIn1 = new BufferedReader(new InputStreamReader(sock1.getInputStream()));
 			
-			serverSock.close(); //????
+			serverSock.close(); 
 			
 		}catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
+
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process LightWeight 2
+	 *
+	 */
 	private void configSock2(){
 		//Connect
 		
@@ -172,40 +196,41 @@ public class LamportNode extends Thread{
 			stdOut2 = new PrintWriter(sock2.getOutputStream(), true);
 			stdIn2 = new BufferedReader(new InputStreamReader(sock2.getInputStream()));
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el listeners per no congelar el thread principal
+	 *
+	 */
 	private void initStdInListeners(){
 		try {
 			sleep(2000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//if (debug) System.out.println("[DEBUG] Process " + id + " stdin1 " +stdIn1);
-		//if (debug) System.out.println("[DEBUG] Process " + id + " stdin2 " +stdIn2);
 
-		
-		//if (debug) System.out.println("[DEBUG] Process " + id + " initializing stdListener");
-		
-		
 		StdListener stdListener1 = new StdListener(stdIn1, shared, getMessageSemaphore, id, 1);
 		stdListener1.start();
 		try {
 			sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		StdListener stdListener2 = new StdListener(stdIn2, shared, getMessageSemaphore,id, 2);
 		stdListener2.start();
 	}
 	
+
+	/*
+	 *
+	 * Bucle infinit, obté un nou missatge y el processa
+	 *
+	 */
 	private void doIterations(){
 		String message;
 		
@@ -213,19 +238,18 @@ public class LamportNode extends Thread{
 		stdOut2.println("REQUEST-"+ts.ticks+"-"+id);
 		q.add(new LamportQueueNode(ts.ticks, id));
 		
-		//stdOut1.println("RELEASE");
-		//stdOut2.println("RELEASE");
 		while (true){	
-			//getMessage
 			message = getMessage();
-			//processMessage
-			processMessage(message);
-				
-		}
-		
-		
+			processMessage(message);	
+		}		
 	}
 	
+
+	/*
+	 *
+	 * Llegeix el primer missatge del socket
+	 *
+	 */
 	private String getMessage(){
 		String recievedMessage = "initialValue";
 			
@@ -247,6 +271,12 @@ public class LamportNode extends Thread{
 		return recievedMessage;
 	}
 	
+
+	/*
+	 *
+	 * Processa el missatge rebut
+	 *
+	 */
 	private void processMessage(String message){
 		String[] parts;
 		
@@ -255,16 +285,12 @@ public class LamportNode extends Thread{
 		ts.receiveAction(Integer.parseInt(parts[1]));
 		
 		if (parts[0].equals("REQUEST")){
-			//DO REQUEST
 			q.add(new LamportQueueNode(Integer.parseInt(parts[1]), Integer.parseInt(parts[2])));			
 			Collections.sort(q);
 
-			
-			//send REPLY
 			sendReply(Integer.parseInt(parts[2]));
 		}
 		else if (parts[0].equals("REPLY")){
-			//DO REPLY
 			replyCounter ++;
 			
 			if (replyCounter>=2 && q.get(0).id == id){
@@ -273,45 +299,52 @@ public class LamportNode extends Thread{
 
 		}
 		else if (parts[0].equals("RELEASE")){
-			//DO RELEASE
 			q.remove(0);
 			if (q.get(0).id == id){
 				manageCS();
 			}
-		}
-		//if (debug) System.out.println("[DEBUG] Process " + id + " Parts[0] "+parts[0]);
-
-		
+		}	
 	}
 	
+
+	/*
+	 *
+	 * Envia la resposta pels sockets corresponents
+	 *
+	 */
 	private void sendReply(int id){
-		//ts.sendAction();
 
 		switch (this.id){
 			case 1:
 				if (id == 2){
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
-				}else{ //id == 3
+				}else{ 
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
 				}
 				break;
 			case 2:
 				if (id == 1){
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
-				}else{ //id == 3
+				}else{ 
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
 				}
 				break;
 			case 3:
 				if (id == 1){
 					stdOut2.println("REPLY-"+ts.ticks+"-"+this.id);
-				}else{ //id == 2
+				}else{ 
 					stdOut1.println("REPLY-"+ts.ticks+"-"+this.id);
 				}
 				break;
 		}
 	}
 	
+
+	/*
+	 *
+	 * Relitza les tasques necessàries a la secció crítica
+	 *
+	 */
 	private void manageCS(){
 		if (debug) System.out.println("[DEBUG] ***************************************************************");
 		if (debug) System.out.println("[DEBUG] Process " + id + " has win the CS, here will be the printed msg");
@@ -328,7 +361,6 @@ public class LamportNode extends Thread{
 		try {
 			sleep(1000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -338,16 +370,11 @@ public class LamportNode extends Thread{
 		
 		q.remove(0);
 		
-		//send RELEASE
-		
-		//ts.sendAction();
-
 		stdOut1.println("RELEASE-"+ts.ticks+"-"+this.id);
 		stdOut2.println("RELEASE-"+ts.ticks+"-"+this.id);
 		
 		ts.sendAction();
 
-		//send REQUEST
 		stdOut1.println("REQUEST-"+ts.ticks+"-"+id);
 		
 		stdOut2.println("REQUEST-"+ts.ticks+"-"+id);
@@ -355,20 +382,33 @@ public class LamportNode extends Thread{
 		q.add(new LamportQueueNode(ts.ticks, id));
 	}
 	
+	/*
+	 *
+	 * Espera a rebre el token
+	 *
+	 */
 	private void waitHWToken(){
 		try {
 			stdInHWP1.readLine();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Allibera el token
+	 *
+	 */
 	private void releaseHWToken(){
 		stdOutHWP3.println("FREE");
 	}
 	
-	//DEBUG function
+	/*
+	 *
+	 * Funció per debugar
+	 *
+	 */
 	private void printQ(){
 		for (int i = 0; i < q.size() ; i++){
 			System.out.println("[DEBUG] Process " + id + " q["+i+"].id: "+q.get(i).id +" & q["+i+"].ts: "+q.get(i).ts);

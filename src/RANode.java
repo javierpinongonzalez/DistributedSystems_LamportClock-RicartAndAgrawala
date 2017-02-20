@@ -8,7 +8,11 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 
-
+/*
+ *
+ * Classe que emula un node de l'algoritme Ricart&Agrawala
+ *
+ */
 public class RANode extends Thread{
 	public int id;
 	public LamportClock ts;
@@ -33,17 +37,26 @@ public class RANode extends Thread{
 		this.q = new ArrayList<LamportQueueNode>();
 	}
 	
+	/*
+	 *
+	 * Sobreescriu el metode Run de la classe Thread
+	 *
+	 */
 	public void run(){
 		initConfig();		
 		doIterations();
 	}
 	
+	/*
+	 *
+	 * Inicialitza la configuració dels sockets
+	 *
+	 */
 	public void initConfig(){
 		
 		try {
 			sleep(1000);
 		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -54,7 +67,6 @@ public class RANode extends Thread{
 			try {
 				sleep(250);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			connectSocket();
@@ -62,8 +74,12 @@ public class RANode extends Thread{
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà amb l'altre process LightWeight 
+	 *
+	 */
 	public void listenSocket(){
-		//Listen
 		
 		try{
 			ServerSocket serverSock = new ServerSocket(9600);
@@ -77,14 +93,17 @@ public class RANode extends Thread{
 			serverSock.close(); 
 					
 		}catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process HeavyWeigh 2
+	 *
+	 */
 	public void connectSocketHWP1(){
 		try {
 			if (debug) System.out.println("[DEBUG] Process " + id + " connecting to HWP1...");
@@ -94,14 +113,17 @@ public class RANode extends Thread{
 			stdInP1 = new BufferedReader(new InputStreamReader(sockHWP1.getInputStream()));
 			
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà al process HeavyWeigh 2
+	 *
+	 */
 	public void connectSocketHWP2(){
 		try {
 			if (debug) System.out.println("[DEBUG] Process " + id + " connecting to HWP2...");
@@ -111,14 +133,17 @@ public class RANode extends Thread{
 			stdOutP2 = new PrintWriter(sockHWP2.getOutputStream(), true);
 			
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Inicialitza el socket que es conectarà amb l'altre process LightWeight 
+	 *
+	 */
 	public void connectSocket(){
 		try {
 			if (debug) System.out.println("[DEBUG] Process " + id + " connecting...");
@@ -129,33 +154,38 @@ public class RANode extends Thread{
 			stdIn = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+	/*
+	 *
+	 * Bucle infinit, obté un nou missatge y el processa
+	 *
+	 */
 	private void doIterations(){
 		String message;
 		requestCS();
 		
 		while (true){	
-			//getMessage
 			message = getMessage();
-			//processMessage
 			processMessage(message);
 		}
 	}
 	
+	/*
+	 *
+	 * Llegeix el primer missatge del socket
+	 *
+	 */
 	private String getMessage(){
 		String inputLine = "initValue";
 		if (debug) System.out.println("[DEBUG] Process " + id + " waiting...");
 		try {
 			inputLine = stdIn.readLine();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		if (debug) System.out.println("[DEBUG] Process " + id + " recieved message: "+inputLine);
@@ -163,15 +193,18 @@ public class RANode extends Thread{
 		return inputLine;
 	}
 	
+
+	/*
+	 *
+	 * Processa el missatge rebut
+	 *
+	 */
 	private void processMessage(String message){
 		String[] parts;
 		
 		parts = message.split("-");
 		
-		//ts.receiveAction(Integer.parseInt(parts[1]));
-		
 		if (parts[0].equals("REQUEST")){
-			//DO REQUEST
 			if (debug) System.out.println("[DEBUG] Process " + id + " ts.ticks: "+ts.ticks+" recieved ts.ticks: "+Integer.parseInt(parts[1]));
 
 			if (ts.ticks > Integer.parseInt(parts[1]) || (ts.ticks == Integer.parseInt(parts[1]) && Integer.parseInt(parts[2]) < id)){
@@ -187,7 +220,6 @@ public class RANode extends Thread{
 				try {
 					stdInP1.readLine();
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -198,7 +230,6 @@ public class RANode extends Thread{
 			try {
 				sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -212,11 +243,21 @@ public class RANode extends Thread{
 		}
 	}
 	
+	/*
+	 *
+	 * Demana accès a la zona crítica
+	 *
+	 */
 	public void requestCS(){
 		ts.tick();
 		broadcastMsg("REQUEST");
 	}
 	
+	/*
+	 *
+	 * Allibera la zona crítica
+	 *
+	 */
 	public void releaseCS(){
 		if (!q.isEmpty()){
 			q.remove(0);
@@ -224,6 +265,11 @@ public class RANode extends Thread{
 		}	
 	}
 	
+	/*
+	 *
+	 * Envia un missatge a tots els nodes
+	 *
+	 */
 	public void broadcastMsg(String type){
 		stdOut.println(type+"-"+ts.ticks+"-"+id);
 	}
